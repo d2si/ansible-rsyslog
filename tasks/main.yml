@@ -1,0 +1,38 @@
+---
+- name: Update apt cache.
+  apt: update_cache=yes cache_valid_time=86400
+
+- name: Ensure rsyslog is installed.
+  apt: "name={{ item }} state=installed"
+  with_items: [ "rsyslog", "rsyslog-gnutls"]
+
+- name: "Create SSL directory"
+  file: 
+    path="/etc/ssl/certs"
+    state=directory
+  when:  ca_certificate is defined
+
+- name: Copy CA file 
+  copy: 
+    src="ca/{{ ca_certificate }}"
+    dest="/etc/ssl/certs/{{ ca_certificate }}"
+    owner="{{rsyslog_user}}"
+    group="{{rsyslog_group}}"
+  when:  ca_certificate is defined
+
+- name: Create main rsyslog configuration
+  template:
+    src="rsyslog.conf.j2"
+    dest="{{rsyslog_conf_file}}"
+    owner="{{rsyslog_user}}"
+    group="{{rsyslog_group}}"
+
+- name: Create remote loggers
+  template:
+    src="remote_loggers.conf.j2"
+    dest="{{rsyslog_d_dir}}/{{ item.key }}.conf"
+    owner="{{rsyslog_user}}"
+    group="{{rsyslog_group}}"
+  with_dict: "{{ rsyslog_remote_loggers }}"
+  notify:
+  - restart rsyslog

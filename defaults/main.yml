@@ -1,0 +1,5 @@
+---
+rsyslog_conf_file: "/etc/rsyslog.conf"
+rsyslog_d_dir: "/etc/rsyslog.d"
+rsyslog_user: "root"
+rsyslog_group: "root"
