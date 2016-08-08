@@ -10,7 +10,7 @@ $ModLoad imuxsock # provides support for local system logging
 $ModLoad imklog   # provides kernel logging support
 #$ModLoad immark  # provides --MARK-- message capability
 
-$WorkDirectory /rsyslog/work
+$WorkDirectory /etc/rsyslog.d/work
 
 $ActionQueueFileName srvrfwd1 # set file name, also enables disk mode
 $ActionResumeRetryCount -1 # infinite retries on insert failure
