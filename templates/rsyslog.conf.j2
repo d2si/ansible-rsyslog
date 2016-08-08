@@ -1,90 +1,84 @@
-#  /etc/rsyslog.conf	Configuration file for rsyslog.
-#
-#			For more information see
-#			/usr/share/doc/rsyslog-doc/html/rsyslog_conf.html
+# {{ ansible_managed }}
+# DO NOT EDIT MANUALLY
 
+# For more information see
+# /usr/share/doc/rsyslog-doc/html/rsyslog_conf.html
 
-#################
 #### MODULES ####
-#################
 
 $ModLoad imuxsock # provides support for local system logging
 $ModLoad imklog   # provides kernel logging support
 #$ModLoad immark  # provides --MARK-- message capability
 
+$WorkDirectory /rsyslog/work
+
+$ActionQueueFileName srvrfwd1 # set file name, also enables disk mode
+$ActionResumeRetryCount -1 # infinite retries on insert failure
+
 # provides UDP syslog reception
-#$ModLoad imudp
-#$UDPServerRun 514
+{% if rsyslog_udp %}$ModLoad imudp {% else %}
+{% endif %}
+
+{% if rsyslog_udp_port is defined %}$UDPServerRun {{ rsyslog_udp_port }}{% else %}514
+{% endif %}
 
 # provides TCP syslog reception
-#$ModLoad imtcp
-#$InputTCPServerRun 514
+{% if rsyslog_tcp %}$ModLoad imtcp {% else %}
+{% endif %}
 
+{% if rsyslog_tcp_port is defined %}$InputTCPServerRun {{ rsyslog_tcp_port }}{% else %}514
+{% endif %}
 
-###########################
 #### GLOBAL DIRECTIVES ####
-###########################
-
-#
 # Use traditional timestamp format.
 # To enable high precision timestamps, comment out the following line.
-#
+
 $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
 
-#
 # Set the default permissions for all log files.
-#
+
 $FileOwner root
 $FileGroup adm
 $FileCreateMode 0640
 $DirCreateMode 0755
 $Umask 0022
 
-#
 # Where to place spool and state files
-#
+
 $WorkDirectory /var/spool/rsyslog
 
-#
 # Include all config files in /etc/rsyslog.d/
-#
+
 $IncludeConfig /etc/rsyslog.d/*.conf
 
-
-###############
 #### RULES ####
-###############
 
-#
 # First some standard log files.  Log by facility.
-#
+
 auth,authpriv.*			/var/log/auth.log
 *.*;auth,authpriv.none		-/var/log/syslog
-#cron.*				/var/log/cron.log
+cron.*				/var/log/cron.log
 daemon.*			-/var/log/daemon.log
 kern.*				-/var/log/kern.log
 lpr.*				-/var/log/lpr.log
 mail.*				-/var/log/mail.log
 user.*				-/var/log/user.log
 
-#
 # Logging for the mail system.  Split it up so that
 # it is easy to write scripts to parse these files.
-#
+
 mail.info			-/var/log/mail.info
 mail.warn			-/var/log/mail.warn
 mail.err			/var/log/mail.err
 
-#
 # Logging for INN news system.
-#
+
 news.crit			/var/log/news/news.crit
 news.err			/var/log/news/news.err
 news.notice			-/var/log/news/news.notice
 
-#
 # Some "catch-all" log files.
-#
+
 *.=debug;\
 	auth,authpriv.none;\
 	news.none;mail.none	-/var/log/debug
@@ -93,15 +87,12 @@ news.notice			-/var/log/news/news.notice
 	cron,daemon.none;\
 	mail,news.none		-/var/log/messages
 
-#
 # Emergencies are sent to everybody logged in.
-#
+
 *.emerg				:omusrmsg:*
 
-#
 # I like to have messages displayed on the console, but only on a virtual
 # console I usually leave idle.
-#
 #daemon,mail.*;\
 #	news.=crit;news.=err;news.=notice;\
 #	*.=debug;*.=info;\
@@ -114,14 +105,38 @@ news.notice			-/var/log/news/news.notice
 #
 # NOTE: adjust the list below, or you'll go crazy if you have a reasonably
 #      busy site..
-#
+
 daemon.*;mail.*;\
 	news.err;\
 	*.=debug;*.=info;\
 	*.=notice;*.=warn	|/dev/xconsole
 
-{% if ca_certificate is defined %}
-# make gtls driver the default
+#### ENCRYPTION ####
+
+{% if ca_certificate %}
+
 $DefaultNetstreamDriver gtls
-$DefaultNetstreamDriverCAFile /etc/ssl/certs/{{ca_certificate}}
+
+$DefaultNetstreamDriverCAFile {{ ca_certificate_path }}
+
+$ActionQueueType LinkedList
+ActionQueueSaveOnShutdown on
+
+$ActionSendStreamDriverAuthMode anon
+$ActionSendStreamDriverMode 1 # run driver in TLS-only mode
+$ActionSendStreamDriverPermittedPeer {{ rsyslog_server_logging_tcp }}
+
+{% else %}
+$ActionSendStreamDriverMode 0 # run driver in clear text
+{% endif %}
+
+#### REMOTE LOGGING ####
+## send logs via @udp
+{% if rsyslog_server_logging_udp is defined %}*.* @{{ rsyslog_server_logging_udp }}:{{ rsyslog_server_logging_udp_port }}{% else %}
+
+{% endif %}
+
+## send logs via @@tcp
+{% if rsyslog_server_logging_tcp is defined %}*.* @@{{ rsyslog_server_logging_tcp }}:{{ rsyslog_server_logging_tcp_port }}{% else %}
+
 {% endif %}
