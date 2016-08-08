@@ -19,7 +19,7 @@ $ActionResumeRetryCount -1 # infinite retries on insert failure
 {% if rsyslog_udp %}$ModLoad imudp {% else %}
 {% endif %}
 
-{% if rsyslog_udp_port is defined %}$UDPServerRun {{ rsyslog_udp_port }}{% else %}514
+{% if rsyslog_udp_port is defined %}$UDPServerRun {{ rsyslog_udp_port }}{% else %}
 {% endif %}
 
 # provides TCP syslog reception
