@@ -12,7 +12,6 @@ $ModLoad imklog   # provides kernel logging support
 
 $WorkDirectory /etc/rsyslog.d/work
 
-$ActionQueueFileName srvrfwd1 # set file name, also enables disk mode
 $ActionResumeRetryCount -1 # infinite retries on insert failure
 
 # provides UDP syslog reception
@@ -23,10 +22,8 @@ $ActionResumeRetryCount -1 # infinite retries on insert failure
 {% endif %}
 
 # provides TCP syslog reception
-{% if rsyslog_tcp %}$ModLoad imtcp {% else %}
-{% endif %}
-
-{% if rsyslog_tcp_port is defined %}$InputTCPServerRun {{ rsyslog_tcp_port }}{% else %}514
+{% if rsyslog_tcp %}$ModLoad imtcp
+$InputTCPServerRun {{ rsyslog_tcp_port }}{% else %}
 {% endif %}
 
 #### GLOBAL DIRECTIVES ####
@@ -120,11 +117,11 @@ $DefaultNetstreamDriver gtls
 $DefaultNetstreamDriverCAFile {{ ca_certificate_path }}
 
 $ActionQueueType LinkedList
-ActionQueueSaveOnShutdown on
+$ActionQueueSaveOnShutdown on
 
 $ActionSendStreamDriverAuthMode anon
 $ActionSendStreamDriverMode 1 # run driver in TLS-only mode
-$ActionSendStreamDriverPermittedPeer {{ rsyslog_server_logging_tcp }}
+#$ActionSendStreamDriverPermittedPeer {{ rsyslog_server_logging_tcp }}
 
 {% else %}
 $ActionSendStreamDriverMode 0 # run driver in clear text
