@@ -3,3 +3,18 @@ rsyslog_conf_file: "/etc/rsyslog.conf"
 rsyslog_d_dir: "/etc/rsyslog.d"
 rsyslog_user: "root"
 rsyslog_group: "root"
+
+#rsyslog_udp: True
+#rsyslog_udp_port: 514
+
+rsyslog_tcp: True
+rsyslog_tcp_port: 514
+
+#rsyslog_server_logging_udp: example.fr
+#rsyslog_server_logging_udp_port: 5253
+
+rsyslog_server_logging_tcp: example.fr
+rsyslog_server_logging_tcp_port: 2992
+
+ca_certificate: True
+ca_certificate_path: /etc/ssl/certs/ca-cert.pem

@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: d2si
+  description: Role Ansible for rsyslog
+  license: MIT
+  min_ansible_version: 1.9
+  platforms:
+  - name: Ubuntu
+    versions:
+      - all
+  - name: Debian
+    versions:
+      - all
+  categories:
+    - monitoring
+    - system
+  dependencies: []
